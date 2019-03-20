@@ -24,9 +24,8 @@ Board = np.ndarray
 # index BOARD_H, BOARD_W is the top right corner
 
 Placement = np.ndarray
-# dims = [BOARD_H, BOARD_W], dtype = np.uint8
-# all values are zero except that corresponding to the marble insertion point
-# the nonzero value is either WHITE_TURN or BLACK_TURN according to the color
+# dims = [BOARD_H, BOARD_W], dtype = np.bool
+# all values are False except that corresponding to the marble insertion point
 # of marble to be placed
 
 Rotation = np.ndarray
@@ -43,7 +42,7 @@ class Game():
         self.turn = WHITE_TURN
 
     def make_move(self, move: Move):
-        self.board = _apply_move(self.board, move)
+        self.board = _apply_move(self.board, self.turn, move)
         self.turn *= -1
 
 
@@ -55,14 +54,15 @@ def _can_place_mask(board):
     return board == 0
 
 
-def _apply_move(board, move: Move):
+@numba.jit()
+def _apply_move(board, turn, move: Move):
     placement, rotation = move
-    board = board + placement
+    board = board + placement.astype(np.int8) * turn
     _apply_rotation(board, rotation)
     return board
 
 
-@numba.jit()
+@numba.jit(nopython=True)
 def _apply_rotation(board, rotation):
     q_i = 0
     q_j = 0
@@ -76,17 +76,17 @@ def _apply_rotation(board, rotation):
 
     middles = np.array(((0, 1), (1, 0), (2, 1), (1, 2)))
     corners = np.array(((0, 0), (2, 0), (2, 2), (0, 2)))
-    _make_swaps(board, middles, direction)
-    _make_swaps(board, corners, direction)
+    _make_swaps(board, q_i, q_j, middles, direction)
+    _make_swaps(board, q_i, q_j, corners, direction)
 
 
-@numba.jit()
-def _make_swaps(board, swaps, direction):
+@numba.jit(nopython=True)
+def _make_swaps(board, q_i, q_j, swaps, direction):
     for i in range(2):
-        from_i = swaps[i * 2][0]
-        from_j = swaps[i * 2][1]
-        to_i = swaps[(i * 2 + direction) % 4][0]
-        to_j = swaps[(i * 2 + direction) % 4][1]
+        from_i = swaps[i * 2][0] + q_i * 3
+        from_j = swaps[i * 2][1] + q_j * 3
+        to_i = swaps[(i * 2 + direction) % 4][0] + q_i * 3
+        to_j = swaps[(i * 2 + direction) % 4][1] + q_j * 3
 
         temp = board[to_i, to_j]
         board[to_i, to_j] = board[from_i, from_j]

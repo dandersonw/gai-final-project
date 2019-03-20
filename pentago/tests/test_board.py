@@ -15,3 +15,12 @@ def test_move():
     expected_board = np.zeros_like(game.board)
     expected_board[2, 0] = 1
     assert np.all(game.board == expected_board)
+
+    placement = np.zeros_like(game.board)
+    placement[5, 5] = 1
+    rotation = np.asarray([[0, 0],
+                           [0, -1]],
+                          dtype=np.int8)
+    game.make_move((placement, rotation))
+    expected_board[5, 3] = -1
+    assert np.all(game.board == expected_board)
