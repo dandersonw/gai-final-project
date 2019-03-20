@@ -9,6 +9,12 @@ class Agent(abc.ABC):
     def __init__(self, player_no):
         self.player_no = player_no
 
+    @abc.abstractmethod
+    def make_move(self, game: game.Game):
+        pass
+
+
+class AIAgent(Agent):
     def make_move(self, game: game.Game):
         move = self._strategy(game.board * self.player_no)
         game.make_move(move)
@@ -25,7 +31,7 @@ class Agent(abc.ABC):
         pass
 
 
-class RandomAgent(Agent):
+class RandomAgent(AIAgent):
     def _strategy(self, board: game.Board) -> game.Move:
         can_place_mask = game.can_place_mask(board)
         possible_moves = np.argsort(np.ravel(can_place_mask))[-np.sum(can_place_mask):]

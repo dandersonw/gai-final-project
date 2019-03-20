@@ -60,6 +60,9 @@ class Game():
         """
         return check_game_over(self.board)
 
+    def can_place_in_square(self, i, j) -> bool:
+        return can_place_mask(self.board)[i, j]
+
 
 @numba.jit(numba.boolean[:, :](numba.int32, numba.int32))
 def generate_placement_from_indices(i, j):

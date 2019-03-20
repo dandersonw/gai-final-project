@@ -5,8 +5,8 @@ from . import agent, controller, game, render
 
 
 class ConsoleClient(agent.Agent, controller.View):
-    def __init__(self, player_no):
-        self.player_no = player_no
+    def __init__(self):
+        pass
 
     def render(self, model: game.Game):
         top_axis_label_h = 2
@@ -33,11 +33,22 @@ class ConsoleClient(agent.Agent, controller.View):
             self.scr.addstr(i + top_axis_label_h, left_axis_label_w, rendering[i])
         self.scr.refresh()
 
-    def game_ended(winner):
+    def game_ended(self, winner):
+        if winner == 0:
+            message = 'DRAW!'
+        elif winner == 1:
+            message = 'WHITE WINS!'
+        elif winner == -1:
+            message = 'BLACK WINS!'
+
+        self.scr.clear()
+        self.scr.addstr(0, 0, message)
+        self.scr.addstr(2, 0, 'Press any key to quit')
+        self.scr.getch()
         curses.endwin()
 
-    def _strategy(self, board: game.Board) -> game.Move:
-        extra_message = ''
+    def make_move(self, model: game.Game):
+        extra_message = '{} Turn'.format('White' if model.turn == 1 else 'Black')
         while True:
             i, j, q_i, q_j, d = self._get_input(extra_message)
             i -= ord('a')
@@ -45,13 +56,14 @@ class ConsoleClient(agent.Agent, controller.View):
             q_i = 1 if q_i == ord('N') else 0
             q_j = 1 if q_j == ord('W') else 0
             d = 1 if d == ord('R') else -1
-            if board[i, j] == 0:
+            if model.can_place_in_square(i, j):
                 break
             else:
                 extra_message = 'Cannot place at that location!'
         placement = game.generate_placement_from_indices(i, j)
         rotation = game.generate_rotation(q_i, q_j, d)
-        return placement, rotation
+        move = (placement, rotation)
+        model.make_move(move)
 
     def _get_input(self, extra_message):
         i = None

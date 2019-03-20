@@ -35,12 +35,12 @@ class Controller():
 
     def play_game(self):
         model = game.Game()
-        while True:
+        winner = None
+        while winner is None:
             for agentt in self.agents:
                 self.view.render(model)
                 agentt.make_move(model)
-
                 winner = model.check_game_over()
                 if winner is not None:
-                    self.view.game_ended(winner)
                     break
+        self.view.game_ended(winner)
