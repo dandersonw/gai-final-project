@@ -8,6 +8,9 @@ class ConsoleClient(agent.Agent, controller.View):
     def __init__(self):
         pass
 
+    def load_params(self, config):
+        return dict()
+
     def render(self, model: game.Game):
         top_axis_label_h = 2
         left_axis_label_w = 4

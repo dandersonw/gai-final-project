@@ -26,7 +26,7 @@ Board = np.ndarray
 # index BOARD_H, BOARD_W is the top right corner
 
 Placement = np.ndarray
-# dims = [BOARD_H, BOARD_W], dtype = np.bool
+# dims = [BOARD_H, BOARD_W], dtype = np.int8
 # all values are False except that corresponding to the marble insertion point
 # of marble to be placed
 
@@ -64,26 +64,26 @@ class Game():
         return can_place_mask(self.board)[i, j]
 
 
-@numba.jit(numba.boolean[:, :](numba.int32, numba.int32))
+@numba.jit(numba.int8[:, :](numba.int64, numba.int64), nopython=True)
 def generate_placement_from_indices(i, j):
-    placement = np.zeros((BOARD_H, BOARD_W), dtype=np.bool)
-    placement[i, j] = True
+    placement = np.zeros((BOARD_H, BOARD_W), dtype=np.int8)
+    placement[i, j] = 1
     return placement
 
 
-@numba.jit(numba.int8[:, :](numba.int32, numba.int32, numba.int8))
+@numba.jit(numba.int8[:, :](numba.int32, numba.int32, numba.int8), nopython=True)
 def generate_rotation(q_i, q_j, direction):
     rotation = np.zeros((2, 2), dtype=np.int8)
     rotation[q_i, q_j] = direction
     return rotation
 
 
-@numba.jit(numba.int8[:, :]())
+@numba.jit(numba.int8[:, :](), nopython=True)
 def generate_clean_board():
     return np.zeros((BOARD_H, BOARD_W), dtype=np.int8)
 
 
-@numba.jit(numba.boolean[:, :](numba.int8[:, :],))
+@numba.jit(numba.boolean[:, :](numba.int8[:, :],), nopython=True)
 def can_place_mask(board):
     return board == 0
 
@@ -118,7 +118,7 @@ def _apply_rotation(board, rotation):
 
 @numba.jit(numba.int8[:, :](numba.int8[:, :],
                             numba.int8,
-                            numba.boolean[:, :],
+                            numba.int8[:, :],
                             numba.int8[:, :]),
            nopython=True)
 def apply_move(board, turn, placement, rotation):
@@ -127,7 +127,7 @@ def apply_move(board, turn, placement, rotation):
     return board
 
 
-@numba.jit()
+@numba.jit(nopython=True)
 def _check_line(board, i, j, i_stride, j_stride):
     sign = 0
     while i < BOARD_H and j < BOARD_W:

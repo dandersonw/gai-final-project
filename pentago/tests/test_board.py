@@ -7,7 +7,7 @@ import pentago.game
 def test_move():
     game = pentago.Game()
     assert game.turn == 1
-    placement = np.zeros_like(game.board, dtype=np.bool)
+    placement = np.zeros_like(game.board, dtype=np.int8)
     placement[0, 0] = 1
     rotation = np.asarray([[1, 0],
                            [0, 0]],
@@ -17,7 +17,7 @@ def test_move():
     expected_board[2, 0] = 1
     assert np.all(game.board == expected_board)
 
-    placement = np.zeros_like(game.board, dtype=np.bool)
+    placement = np.zeros_like(game.board, dtype=np.int8)
     placement[5, 5] = 1
     rotation = np.asarray([[0, 0],
                            [0, -1]],
@@ -26,7 +26,7 @@ def test_move():
     expected_board[5, 3] = -1
     assert np.all(game.board == expected_board)
 
-    placement = np.zeros_like(game.board, dtype=np.bool)
+    placement = np.zeros_like(game.board, dtype=np.int8)
     placement[1, 3] = 1
     rotation = np.asarray([[0, 1],
                            [0, 0]],
@@ -35,7 +35,7 @@ def test_move():
     expected_board[2, 4] = 1
     assert np.all(game.board == expected_board)
 
-    placement = np.zeros_like(game.board, dtype=np.bool)
+    placement = np.zeros_like(game.board, dtype=np.int8)
     placement[3, 2] = 1
     rotation = np.asarray([[0, 0],
                            [-1, 0]],
@@ -100,7 +100,7 @@ def test_proposal():
                         [ 0,  1, -1,  1,  1, -1],  # noqa
                         [ 1,  0,  0,  0,  0,  0]],  # noqa
                        dtype=np.int8)
-    placement = np.zeros_like(board, dtype=np.bool)
+    placement = np.zeros_like(board, dtype=np.int8)
     placement[2, 1] = True
     rotation = np.asarray([[-1, 0],
                            [0, 0]],
@@ -122,7 +122,7 @@ def test_proposal():
                         [ 0,  1, -1,  1,  1, -1],  # noqa
                         [ 1,  0,  0,  0,  0,  0]],  # noqa
                        dtype=np.int8)
-    placement = np.zeros_like(board, dtype=np.bool)
+    placement = np.zeros_like(board, dtype=np.int8)
     placement[2, 1] = True
     rotation = np.asarray([[1, 0],
                            [0, 0]],
@@ -144,7 +144,7 @@ def test_proposal():
                         [ 0,  1, -1,  1,  1, -1],  # noqa
                         [ 1,  0,  0,  0,  0,  0]],  # noqa
                        dtype=np.int8)
-    placement = np.zeros_like(board, dtype=np.bool)
+    placement = np.zeros_like(board, dtype=np.int8)
     placement[2, 1] = True
     rotation = np.asarray([[0, 0],
                            [0, 1]],
