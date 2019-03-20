@@ -35,6 +35,8 @@ Rotation = np.ndarray
 # all values are zero except that corresponding to the rotated quadrant
 # the nonzero value is 1 for clockwise rotation and -1 for counterclockwise
 
+Move = typing.Tuple[Placement, Rotation]
+
 
 class Game():
     """A nice wrapper class for game related functionality.
@@ -46,7 +48,8 @@ class Game():
         self.board: Board = generate_clean_board()
         self.turn = WHITE_TURN
 
-    def make_move(self, placement, rotation):
+    def make_move(self, move: Move):
+        placement, rotation = move
         self.board = apply_move(self.board, self.turn, placement, rotation)
         self.turn *= -1
 
@@ -56,6 +59,20 @@ class Game():
 
         """
         return check_game_over(self.board)
+
+
+@numba.jit(numba.boolean[:, :](numba.int32, numba.int32))
+def generate_placement_from_indices(i, j):
+    placement = np.zeros((BOARD_H, BOARD_W), dtype=np.bool)
+    placement[i, j] = True
+    return placement
+
+
+@numba.jit(numba.int8[:, :](numba.int32, numba.int32, numba.int8))
+def generate_rotation(q_i, q_j, direction):
+    rotation = np.zeros((2, 2), dtype=np.int8)
+    rotation[q_i, q_j] = direction
+    return rotation
 
 
 @numba.jit(numba.int8[:, :]())
@@ -69,17 +86,14 @@ def can_place_mask(board):
 
 
 @numba.jit(nopython=True)
-def _make_swaps(board, q_i, q_j, swaps, direction):
-    for i in range(2):
-        from_i = swaps[i * 2][0] + q_i * 3
-        from_j = swaps[i * 2][1] + q_j * 3
-        to_i = swaps[(i * 2 + direction) % 4][0] + q_i * 3
-        to_j = swaps[(i * 2 + direction) % 4][1] + q_j * 3
-
-        temp = board[to_i, to_j]
-        board[to_i, to_j] = board[from_i, from_j]
-        board[from_i, from_j] = temp
-
+def _make_swaps(board, q_i, q_j, locs, direction):
+    vals = np.zeros((4,), dtype=np.int8)
+    for i in range(4):
+        vals[i] = board[q_i * 3 + locs[i][0], q_j * 3 + locs[i][1]]
+    vals = np.roll(vals, direction)
+    for i in range(4):
+        board[q_i * 3 + locs[i][0], q_j * 3 + locs[i][1]] = vals[i]
+    
 
 @numba.jit((numba.int8[:, :], numba.int8[:, :]), nopython=True)
 def _apply_rotation(board, rotation):

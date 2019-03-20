@@ -12,7 +12,7 @@ def test_move():
     rotation = np.asarray([[1, 0],
                            [0, 0]],
                           dtype=np.int8)
-    game.make_move(placement, rotation)
+    game.make_move((placement, rotation))
     expected_board = np.zeros_like(game.board)
     expected_board[2, 0] = 1
     assert np.all(game.board == expected_board)
@@ -22,7 +22,7 @@ def test_move():
     rotation = np.asarray([[0, 0],
                            [0, -1]],
                           dtype=np.int8)
-    game.make_move(placement, rotation)
+    game.make_move((placement, rotation))
     expected_board[5, 3] = -1
     assert np.all(game.board == expected_board)
 
@@ -31,7 +31,7 @@ def test_move():
     rotation = np.asarray([[0, 1],
                            [0, 0]],
                           dtype=np.int8)
-    game.make_move(placement, rotation)
+    game.make_move((placement, rotation))
     expected_board[2, 4] = 1
     assert np.all(game.board == expected_board)
 
@@ -40,8 +40,16 @@ def test_move():
     rotation = np.asarray([[0, 0],
                            [-1, 0]],
                           dtype=np.int8)
-    game.make_move(placement, rotation)
-    expected_board[3, 0] = -1
+    game.make_move((placement, rotation))
+    expected_board[5, 2] = -1
+    assert np.all(game.board == expected_board)
+
+    game = pentago.Game()
+    expected_board = np.zeros_like(game.board)
+    placement = pentago.game.generate_placement_from_indices(4, 0)
+    rotation = pentago.game.generate_rotation(1, 0, -1)
+    game.make_move((placement, rotation))
+    expected_board[3, 1] = 1
     assert np.all(game.board == expected_board)
 
 
@@ -99,10 +107,55 @@ def test_proposal():
                           dtype=np.int8)
     board = pentago.game.apply_move(board, -1, placement, rotation)
     expected_board = np.asarray([[ 0,  1,  0,  0,  0,  0], # noqa
-                                 [ 0, -1, -1,  1,  0,  0],  # noqa
+                                 [-1, -1,  0,  1,  0,  0],  # noqa
                                  [ 0,  0,  0, -1,  1,  0],  # noqa
                                  [-1,  0,  0,  0, -1,  0],  # noqa
                                  [ 0,  1, -1,  1,  1, -1],  # noqa
                                  [ 1,  0,  0,  0,  0,  0]],  # noqa
                                 dtype=np.int8)
+    assert np.all(expected_board == board)
+
+    board = np.asarray([[ 0,  0,  0,  0,  0,  0], # noqa
+                        [ 1, -1,  0,  1,  0,  0],  # noqa
+                        [ 0,  0,  0, -1,  1,  0],  # noqa
+                        [-1,  0,  0,  0, -1,  0],  # noqa
+                        [ 0,  1, -1,  1,  1, -1],  # noqa
+                        [ 1,  0,  0,  0,  0,  0]],  # noqa
+                       dtype=np.int8)
+    placement = np.zeros_like(board, dtype=np.bool)
+    placement[2, 1] = True
+    rotation = np.asarray([[1, 0],
+                           [0, 0]],
+                          dtype=np.int8)
+    board = pentago.game.apply_move(board, -1, placement, rotation)
+    expected_board = np.asarray([[ 0,  0,  0,  0,  0,  0], # noqa
+                                 [ 0, -1, -1,  1,  0,  0],  # noqa
+                                 [ 0,  1,  0, -1,  1,  0],  # noqa
+                                 [-1,  0,  0,  0, -1,  0],  # noqa
+                                 [ 0,  1, -1,  1,  1, -1],  # noqa
+                                 [ 1,  0,  0,  0,  0,  0]],  # noqa
+                                dtype=np.int8)
+    assert np.all(expected_board == board)
+
+    board = np.asarray([[ 0,  0,  0,  0,  0,  0], # noqa
+                        [ 1, -1,  0,  1,  0,  0],  # noqa
+                        [ 0,  0,  0, -1,  1,  0],  # noqa
+                        [-1,  0,  0,  0, -1,  0],  # noqa
+                        [ 0,  1, -1,  1,  1, -1],  # noqa
+                        [ 1,  0,  0,  0,  0,  0]],  # noqa
+                       dtype=np.int8)
+    placement = np.zeros_like(board, dtype=np.bool)
+    placement[2, 1] = True
+    rotation = np.asarray([[0, 0],
+                           [0, 1]],
+                          dtype=np.int8)
+    board = pentago.game.apply_move(board, 1, placement, rotation)
+    expected_board = np.asarray([[ 0,  0,  0,  0,  0,  0], # noqa
+                                 [ 1, -1,  0,  1,  0,  0],  # noqa
+                                 [ 0,  1,  0, -1,  1,  0],  # noqa
+                                 [-1,  0,  0,  0, -1,  0],  # noqa
+                                 [ 0,  1, -1, -1,  1,  0],  # noqa
+                                 [ 1,  0,  0,  0,  1,  0]],  # noqa
+                                dtype=np.int8)
+    print(board)
     assert np.all(expected_board == board)
