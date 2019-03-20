@@ -74,7 +74,7 @@ def _apply_rotation(board, rotation):
                 q_j = j
                 direction = rotation[i, j]
 
-    middles = np.array(((0, 1), (1, 0), (2, 1), (1, 2)))
+    middles = np.array(((1, 0), (2, 1), (1, 2), (0, 1)))
     corners = np.array(((0, 0), (2, 0), (2, 2), (0, 2)))
     _make_swaps(board, q_i, q_j, middles, direction)
     _make_swaps(board, q_i, q_j, corners, direction)

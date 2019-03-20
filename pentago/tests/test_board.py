@@ -24,3 +24,22 @@ def test_move():
     game.make_move((placement, rotation))
     expected_board[5, 3] = -1
     assert np.all(game.board == expected_board)
+
+    placement = np.zeros_like(game.board)
+    placement[1, 3] = 1
+    rotation = np.asarray([[0, 1],
+                           [0, 0]],
+                          dtype=np.int8)
+    game.make_move((placement, rotation))
+    expected_board[2, 4] = 1
+    assert np.all(game.board == expected_board)
+
+    placement = np.zeros_like(game.board)
+    placement[3, 2] = 1
+    rotation = np.asarray([[0, 0],
+                           [-1, 0]],
+                          dtype=np.int8)
+    game.make_move((placement, rotation))
+    expected_board[3, 0] = -1
+    assert np.all(game.board == expected_board)
+    
