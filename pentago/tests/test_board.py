@@ -43,7 +43,7 @@ def test_move():
     game.make_move(placement, rotation)
     expected_board[3, 0] = -1
     assert np.all(game.board == expected_board)
-    
+
 
 def test_check_game_over():
     assert pentago.game.check_game_over(pentago.game.generate_clean_board()) is None
@@ -82,3 +82,27 @@ def test_check_game_over():
                         [ 1,  1,  1, -1,  1,  1]],   # noqa
                        dtype=np.int8)
     assert pentago.game.check_game_over(board) == 0
+
+
+def test_proposal():
+    board = np.asarray([[ 0,  0,  0,  0,  0,  0], # noqa
+                        [ 1, -1,  0,  1,  0,  0],  # noqa
+                        [ 0,  0,  0, -1,  1,  0],  # noqa
+                        [-1,  0,  0,  0, -1,  0],  # noqa
+                        [ 0,  1, -1,  1,  1, -1],  # noqa
+                        [ 1,  0,  0,  0,  0,  0]],  # noqa
+                       dtype=np.int8)
+    placement = np.zeros_like(board, dtype=np.bool)
+    placement[2, 1] = True
+    rotation = np.asarray([[-1, 0],
+                           [0, 0]],
+                          dtype=np.int8)
+    board = pentago.game.apply_move(board, -1, placement, rotation)
+    expected_board = np.asarray([[ 0,  1,  0,  0,  0,  0], # noqa
+                                 [ 0, -1, -1,  1,  0,  0],  # noqa
+                                 [ 0,  0,  0, -1,  1,  0],  # noqa
+                                 [-1,  0,  0,  0, -1,  0],  # noqa
+                                 [ 0,  1, -1,  1,  1, -1],  # noqa
+                                 [ 1,  0,  0,  0,  0,  0]],  # noqa
+                                dtype=np.int8)
+    assert np.all(expected_board == board)
