@@ -17,12 +17,8 @@ def minimax_search(board, evaluation_function, depth=3):
 
 @numba.jit(nopython=True)
 def _minimax_search(board, depth, sign, evaluation_function):
-    if depth == 0 or game.check_game_over(board) is not None:
+    if game.check_game_over(board) is not None or depth == 0:
         return evaluation_function(board), None
-    if game.check_draw(board):
-        if depth == 1:
-            raise ValueError()
-        return 0, None
 
     best_move = None
     best_val = 0

@@ -11,7 +11,7 @@ def main():
     parser.add_argument('--black-config', default='{}')
     parser.add_argument('--white-agent', default='human')
     parser.add_argument('--white-config', default='{}')
-    parser.add_argument('--trials', default=100)
+    parser.add_argument('--trials', default=100, type=int)
     args = parser.parse_args()
 
     agents = [pentago.get_agent_for_str(None,
