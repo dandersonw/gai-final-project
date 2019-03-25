@@ -22,15 +22,14 @@ def _minimax_search(board, depth, sign, evaluation_function):
 
     best_move = None
     best_val = 0
-    for i in range(game.BOARD_H):
-        for j in range(game.BOARD_W):
+    for i in np.random.permutation(game.BOARD_H):
+        for j in np.random.permutation(game.BOARD_W):
             if board[i, j] != 0:
                 continue
             placement = game.generate_placement_from_indices(i, j)
-            for q_i in range(2):
-                for q_j in range(2):
+            for q_i in np.random.permutation(2):
+                for q_j in np.random.permutation(2):
                     for d in [-1, 1]:
-                        # placement = game.generate_placement_from_indices(i, j)
                         rotation = game.generate_rotation(q_i, q_j, d)
                         new_board = game.apply_move(board, sign, placement, rotation)
                         val, _ = _minimax_search(new_board,
