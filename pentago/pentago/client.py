@@ -1,10 +1,10 @@
 import curses
 import os
 
-from . import agent, controller, game, render
+from . import agent, game, render, view
 
 
-class ConsoleClient(agent.Agent, controller.View):
+class ConsoleClient(agent.Agent, view.View):
     key = 'human'
 
     def __init__(self):
@@ -35,7 +35,9 @@ class ConsoleClient(agent.Agent, controller.View):
             self.scr.addch(i + top_axis_label_h + h_adj, 2, label)
         # rendered strings
         for i in range(len(rendering)):
-            self.scr.addstr(i + top_axis_label_h, left_axis_label_w, rendering[i])
+            self.scr.addstr(i + top_axis_label_h,
+                            left_axis_label_w,
+                            rendering[i])
         self.scr.refresh()
 
     def game_ended(self, winner):
