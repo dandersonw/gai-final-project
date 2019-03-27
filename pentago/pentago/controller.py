@@ -18,6 +18,8 @@ class Controller():
                     self.view.render(model)
                 move, explanation = agentt.make_move(model)
                 model.make_move(move)
+                if self.view is not None:
+                    self.view.move_made(move, explanation)
                 winner = model.check_game_over()
                 if winner is not None:
                     break
