@@ -16,21 +16,18 @@ class Agent(abc.ABC):
         pass
 
 
-def get_agent_for_str(human, string, color_turn, **kwargs) -> Agent:
+def get_agent_for_str(human, string, **kwargs) -> Agent:
     if string == 'human':
         return human
     elif string == 'random':
-        return RandomAgent(color_turn)
+        return RandomAgent()
     elif string == 'minimax':
-        return MinimaxSearchAgent(color_turn, **kwargs)
+        return MinimaxSearchAgent(**kwargs)
 
 
 class AIAgent(Agent):
-    def __init__(self, player_no):
-        self.player_no = player_no
-
     def make_move(self, game: game.Game):
-        move = self._strategy(game.board * self.player_no)
+        move = self._strategy(game.board * game.turn)
         game.make_move(move)
 
     @abc.abstractmethod
@@ -66,8 +63,8 @@ class RandomAgent(AIAgent):
 
 
 class MinimaxSearchAgent(AIAgent):
-    def __init__(self, player_no, *, depth=1, evaluation_function=search_ai.runs_evaluation):
-        super(MinimaxSearchAgent, self).__init__(player_no)
+    def __init__(self, *, depth=1, evaluation_function=search_ai.runs_evaluation):
+        super(MinimaxSearchAgent, self).__init__()
         self.depth = depth
         self.evaluation_function = evaluation_function
 

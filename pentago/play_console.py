@@ -14,11 +14,9 @@ def main():
     with pentago.ConsoleClient() as client:
         agents = [pentago.get_agent_for_str(client,
                                             args.white_agent,
-                                            pentago.WHITE_TURN,
                                             **json.loads(args.white_config)),
                   pentago.get_agent_for_str(client,
                                             args.black_agent,
-                                            pentago.BLACK_TURN,
                                             **json.loads(args.black_config))]
         controller = pentago.Controller(agents, client)
         controller.play_game()

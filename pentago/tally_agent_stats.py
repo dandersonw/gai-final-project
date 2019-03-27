@@ -16,11 +16,9 @@ def main():
 
     agents = [pentago.get_agent_for_str(None,
                                         args.white_agent,
-                                        pentago.WHITE_TURN,
                                         **json.loads(args.white_config)),
               pentago.get_agent_for_str(None,
                                         args.black_agent,
-                                        pentago.BLACK_TURN,
                                         **json.loads(args.black_config))]
 
     black_wins = 0
