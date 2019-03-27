@@ -2,7 +2,7 @@ import numpy as np
 
 import numba
 
-from . import game
+from . import game, agent
 
 
 def evaluation_function_for_str(string):
@@ -83,3 +83,24 @@ def _check_line(board, runs, i, j, i_stride, j_stride, sign):
         i += i_stride
         j += j_stride
     runs[run] += 1
+
+
+class MinimaxSearchAgent(agent.AIAgent):
+    key = 'minimax'
+
+    def __init__(self, *, depth=1, evaluation_function=runs_evaluation):
+        super(MinimaxSearchAgent, self).__init__()
+        self.depth = depth
+        self.evaluation_function = evaluation_function
+
+    def load_params(self, config):
+        result = {k: v for k, v in config.items() if k in {'depth'}}
+        ef_key = config.get('evaluation_function')
+        if ef_key is not None:
+            result['evaluation_function'] = evaluation_function_for_str(ef_key)
+        return result
+
+    def _strategy(self, board):
+        return minimax_search(board,
+                              self.evaluation_function,
+                              self.depth)

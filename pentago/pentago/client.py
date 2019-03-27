@@ -5,6 +5,8 @@ from . import agent, controller, game, render
 
 
 class ConsoleClient(agent.Agent, controller.View):
+    key = 'human'
+
     def __init__(self):
         pass
 

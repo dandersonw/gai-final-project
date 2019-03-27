@@ -14,10 +14,10 @@ def main():
     parser.add_argument('--trials', default=100, type=int)
     args = parser.parse_args()
 
-    agents = [pentago.get_agent_for_str(None,
+    agents = [pentago.get_agent_for_key(None,
                                         args.white_agent,
                                         **json.loads(args.white_config)),
-              pentago.get_agent_for_str(None,
+              pentago.get_agent_for_key(None,
                                         args.black_agent,
                                         **json.loads(args.black_config))]
 

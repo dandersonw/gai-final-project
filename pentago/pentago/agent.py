@@ -3,10 +3,17 @@ import numpy as np
 import abc
 import typing
 
-from . import game, search_ai
+from collections import deque
+
+from . import game
 
 
 class Agent(abc.ABC):
+    @property
+    @abc.abstractstaticmethod
+    def key():
+        return None
+
     @abc.abstractmethod
     def make_move(self, game: game.Game):
         pass
@@ -16,13 +23,19 @@ class Agent(abc.ABC):
         pass
 
 
-def get_agent_for_str(human, string, **kwargs) -> Agent:
-    if string == 'human':
+def get_agent_for_key(human, key, **kwargs) -> Agent:
+    if key == 'human':
         return human
-    elif string == 'random':
-        return RandomAgent()
-    elif string == 'minimax':
-        return MinimaxSearchAgent(**kwargs)
+
+    q = deque()
+    q.append(Agent)
+    while q:
+        a = q.pop()
+        if a.key == key:
+            return a(**kwargs)
+        q.extend(a.__subclasses__())
+
+    raise NameError('Can\'t find agent of key {}'.format(key))
 
 
 class AIAgent(Agent):
@@ -43,12 +56,16 @@ class AIAgent(Agent):
 
 
 class RandomAgent(AIAgent):
+    key = 'random'
+
     def _strategy(self, board: game.Board) -> game.Move:
         can_place_mask = game.can_place_mask(board)
-        possible_moves = np.argsort(np.ravel(can_place_mask))[-np.sum(can_place_mask):]
+        num_possible = np.sum(can_place_mask)
+        possible_moves = np.argsort(np.ravel(can_place_mask))[-num_possible:]
         np.random.shuffle(possible_moves)
         move = possible_moves[0]
-        placement = game.generate_placement_from_indices(*np.unravel_index(move, game.BOARD_DIMS))
+        indices = np.unravel_index(move, game.BOARD_DIMS)
+        placement = game.generate_placement_from_indices(*indices)
 
         rotation_quadrant = np.random.randint(4)
         rotation_dir = np.random.randint(2) - 1
@@ -60,22 +77,3 @@ class RandomAgent(AIAgent):
 
     def load_params(self, config):
         return dict()
-
-
-class MinimaxSearchAgent(AIAgent):
-    def __init__(self, *, depth=1, evaluation_function=search_ai.runs_evaluation):
-        super(MinimaxSearchAgent, self).__init__()
-        self.depth = depth
-        self.evaluation_function = evaluation_function
-
-    def load_params(self, config):
-        result = {k: v for k, v in config.items() if k in {'depth'}}
-        ef_key = config.get('evaluation_function')
-        if ef_key is not None:
-            result['evaluation_function'] = search_ai.evaluation_function_for_str(ef_key)
-        return result
-
-    def _strategy(self, board):
-        return search_ai.minimax_search(board,
-                                        self.evaluation_function,
-                                        self.depth)
