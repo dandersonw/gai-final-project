@@ -54,7 +54,7 @@ class ConsoleClient(agent.Agent, view.View):
         self.scr.getch()
         curses.endwin()
 
-    def make_move(self, model: game.Game):
+    def make_move(self, model: game.Game) -> agent.Explanation:
         extra_message = '{} Turn'.format('White' if model.turn == 1 else 'Black')
         while True:
             i, j, q_i, q_j, d = self._get_input(extra_message)
@@ -70,7 +70,8 @@ class ConsoleClient(agent.Agent, view.View):
         placement = game.generate_placement_from_indices(i, j)
         rotation = game.generate_rotation(q_i, q_j, d)
         move = (placement, rotation)
-        model.make_move(move)
+        explanation = None
+        return move, explanation
 
     def _get_input(self, extra_message):
         i = None

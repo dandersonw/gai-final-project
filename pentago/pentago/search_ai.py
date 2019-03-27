@@ -101,6 +101,8 @@ class MinimaxSearchAgent(agent.AIAgent):
         return result
 
     def _strategy(self, board):
-        return minimax_search(board,
+        move = minimax_search(board,
                               self.evaluation_function,
                               self.depth)
+        explanation = None
+        return move, explanation

@@ -8,6 +8,9 @@ from collections import deque
 from . import game
 
 
+Explanation = typing.Any
+
+
 class Agent(abc.ABC):
     @property
     @abc.abstractstaticmethod
@@ -15,7 +18,8 @@ class Agent(abc.ABC):
         return None
 
     @abc.abstractmethod
-    def make_move(self, game: game.Game):
+    def make_move(self, game: game.Game) -> Explanation:
+        """Make a move and return an explanation."""
         pass
 
     @abc.abstractmethod
@@ -39,12 +43,11 @@ def get_agent_for_key(human, key, **kwargs) -> Agent:
 
 
 class AIAgent(Agent):
-    def make_move(self, game: game.Game):
-        move = self._strategy(game.board * game.turn)
-        game.make_move(move)
+    def make_move(self, game: game.Game) -> typing.Tuple[game.Move, Explanation]:
+        return self._strategy(game.board * game.turn)
 
     @abc.abstractmethod
-    def _strategy(board: game.Board) -> game.Move:
+    def _strategy(self, board: game.Board) -> typing.Tuple[game.Move, Explanation]:
         """Decide on a placement and a rotation.
 
         All values in board are from the perspective of this player, i.e. 1
@@ -58,7 +61,7 @@ class AIAgent(Agent):
 class RandomAgent(AIAgent):
     key = 'random'
 
-    def _strategy(self, board: game.Board) -> game.Move:
+    def _strategy(self, board: game.Board) -> typing.Tuple[game.Move, Explanation]:
         can_place_mask = game.can_place_mask(board)
         num_possible = np.sum(can_place_mask)
         possible_moves = np.argsort(np.ravel(can_place_mask))[-num_possible:]
@@ -73,7 +76,7 @@ class RandomAgent(AIAgent):
         rotation[rotation_quadrant] = rotation_dir
         rotation = np.reshape(rotation, [2, 2])
 
-        return placement, rotation
+        return (placement, rotation), None
 
     def load_params(self, config):
         return dict()
