@@ -26,7 +26,11 @@ def main():
     black_wins = 0
     white_wins = 0
     draws = 0
-    for i in tqdm(list(range(args.trials))):
+    trials = tqdm(list(range(args.trials)))
+    for i in trials:
+        trials.set_description('B/W/D: {}/{}/{}'.format(black_wins,
+                                                        white_wins,
+                                                        draws))
         controller = pentago.Controller(agents, None)
         winner = controller.play_game()
         if winner == 1:
