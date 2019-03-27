@@ -64,31 +64,39 @@ class Game():
         return can_place_mask(self.board)[i, j]
 
 
-@numba.jit(numba.int8[:, :](numba.int64, numba.int64), nopython=True)
+@numba.jit(numba.int8[:, :](numba.int64, numba.int64),
+           nopython=True,
+           cache=True)
 def generate_placement_from_indices(i, j):
     placement = np.zeros((BOARD_H, BOARD_W), dtype=np.int8)
     placement[i, j] = 1
     return placement
 
 
-@numba.jit(numba.int8[:, :](numba.int32, numba.int32, numba.int8), nopython=True)
+@numba.jit(numba.int8[:, :](numba.int32, numba.int32, numba.int8),
+           nopython=True,
+           cache=True)
 def generate_rotation(q_i, q_j, direction):
     rotation = np.zeros((2, 2), dtype=np.int8)
     rotation[q_i, q_j] = direction
     return rotation
 
 
-@numba.jit(numba.int8[:, :](), nopython=True)
+@numba.jit(numba.int8[:, :](),
+           nopython=True,
+           cache=True)
 def generate_clean_board():
     return np.zeros((BOARD_H, BOARD_W), dtype=np.int8)
 
 
-@numba.jit(numba.boolean[:, :](numba.int8[:, :],), nopython=True)
+@numba.jit(numba.boolean[:, :](numba.int8[:, :],),
+           nopython=True,
+           cache=True)
 def can_place_mask(board):
     return board == 0
 
 
-@numba.jit(nopython=True)
+@numba.jit(nopython=True, cache=True)
 def _make_swaps(board, q_i, q_j, locs, direction):
     vals = np.zeros((4,), dtype=np.int8)
     for i in range(4):
@@ -96,9 +104,11 @@ def _make_swaps(board, q_i, q_j, locs, direction):
     vals = np.roll(vals, direction)
     for i in range(4):
         board[q_i * 3 + locs[i][0], q_j * 3 + locs[i][1]] = vals[i]
-    
 
-@numba.jit((numba.int8[:, :], numba.int8[:, :]), nopython=True)
+
+@numba.jit((numba.int8[:, :], numba.int8[:, :]),
+           nopython=True,
+           cache=True)
 def _apply_rotation(board, rotation):
     q_i = 0
     q_j = 0
@@ -120,7 +130,8 @@ def _apply_rotation(board, rotation):
                             numba.int8,
                             numba.int8[:, :],
                             numba.int8[:, :]),
-           nopython=True)
+           nopython=True,
+           cache=True)
 def apply_move(board, turn, placement, rotation):
     board = board + placement.astype(np.int8) * turn
     _apply_rotation(board, rotation)
@@ -142,7 +153,9 @@ def _check_line(board, i, j, i_stride, j_stride):
     return 0
 
 
-@numba.jit(numba.optional(numba.int32)(numba.int8[:, :],), nopython=True)
+@numba.jit(numba.optional(numba.int32)(numba.int8[:, :],),
+           nopython=True,
+           cache=True)
 def check_victory(board):
     # check rows
     for i in range(BOARD_H):
@@ -168,12 +181,16 @@ def check_victory(board):
             return diagonals[i]
 
 
-@numba.jit(numba.boolean(numba.int8[:, :],), nopython=True)
+@numba.jit(numba.boolean(numba.int8[:, :],),
+           nopython=True,
+           cache=True)
 def check_draw(board):
     return np.all(board)
 
 
-@numba.jit(numba.optional(numba.int32)(numba.int8[:, :],), nopython=True)
+@numba.jit(numba.optional(numba.int32)(numba.int8[:, :],),
+           nopython=True,
+           cache=True)
 def check_game_over(board):
     victory = check_victory(board)
     draw = check_draw(board)

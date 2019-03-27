@@ -36,21 +36,18 @@ def _minimax_search(board, depth, sign, evaluation_function):
                                                  depth - 1,
                                                  -1 * sign,
                                                  evaluation_function)
-                        if sign == -1 and (best_move is None or val < best_val):
-                            best_val = val
-                            best_move = placement, rotation
-                        elif sign == 1 and (best_move is None or val > best_val):
+                        if best_move is None or val * sign > best_val * sign:
                             best_val = val
                             best_move = placement, rotation
     return best_val, best_move
 
 
-@numba.jit(nopython=True)
+@numba.jit(nopython=True, cache=True)
 def runs_evaluation(board):
     return count_runs(board, 1) - count_runs(board, -1)
 
 
-@numba.jit(nopython=True)
+@numba.jit(nopython=True, cache=True)
 def count_runs(board, sign):
     runs = np.zeros((6,), dtype=np.float64)
     # check rows
@@ -74,7 +71,7 @@ def count_runs(board, sign):
     return np.dot(runs, point_values)
 
 
-@numba.jit(nopython=True)
+@numba.jit(nopython=True, cache=True)
 def _check_line(board, runs, i, j, i_stride, j_stride, sign):
     run = 0
     while i < game.BOARD_H and j < game.BOARD_W:
