@@ -52,41 +52,37 @@ def runs_evaluation(board):
 
 @numba.jit(nopython=True)
 def count_runs(board, sign):
-    runs = np.zeros((5,), dtype=np.float64)
+    runs = np.zeros((6,), dtype=np.float64)
     # check rows
     for i in range(game.BOARD_H):
-        runs += _check_line(board, i, 0, 0, 1, sign)
+        _check_line(board, runs, i, 0, 0, 1, sign)
 
     # check columns
     for j in range(game.BOARD_W):
-        runs += _check_line(board, 0, j, 1, 0, sign)
+        _check_line(board, runs, 0, j, 1, 0, sign)
 
     # check diagonals
-    runs += _check_line(board, 0, 0, 1, 1, sign)
-    runs += _check_line(board, 1, 0, 1, 1, sign)
-    runs += _check_line(board, 0, 1, 1, 1, sign)
-    runs += _check_line(board, 5, 0, -1, 1, sign)
-    runs += _check_line(board, 4, 0, -1, 1, sign)
-    runs += _check_line(board, 5, 1, -1, 1, sign)
+    _check_line(board, runs, 0, 0, 1, 1, sign)
+    _check_line(board, runs, 1, 0, 1, 1, sign)
+    _check_line(board, runs, 0, 1, 1, 1, sign)
+    _check_line(board, runs, 5, 0, -1, 1, sign)
+    _check_line(board, runs, 4, 0, -1, 1, sign)
+    _check_line(board, runs, 5, 1, -1, 1, sign)
 
-    point_values = np.array((2 ** 1, 2 ** 4, 2 ** 6, 2 ** 8, 2 ** 15),
+    point_values = np.array((0, 2 ** 1, 2 ** 4, 2 ** 6, 2 ** 8, 2 ** 15),
                             dtype=np.float64)
     return np.dot(runs, point_values)
 
 
 @numba.jit(nopython=True)
-def _check_line(board, i, j, i_stride, j_stride, sign):
-    runs = np.zeros((5,), dtype=np.float64)
+def _check_line(board, runs, i, j, i_stride, j_stride, sign):
     run = 0
     while i < game.BOARD_H and j < game.BOARD_W:
         if board[i, j] != sign:
-            if run != 0:
-                runs[run] += 1
+            runs[run] += 1
             run = 0
         else:
             run += 1
         i += i_stride
         j += j_stride
-    if run != 0:
-        runs[run] += 1
-    return runs
+    runs[run] += 1
