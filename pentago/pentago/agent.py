@@ -22,21 +22,31 @@ class Agent(abc.ABC):
         """Make a move and return an explanation."""
         pass
 
+    @abc.abstractclassmethod
+    def load_params(cls, config: typing.Dict[str, typing.Any]) -> typing.Dict[str, typing.Any]:
+        """From a serialized key:value representation, load params of the type that the
+        constructor for this class wants.
+
+        """
+        pass
+
     @abc.abstractmethod
-    def load_params(self, config: typing.Dict[str, str]):
+    def to_params(self) -> typing.Dict[str, typing.Any]:
+        """Produce a serializable key:value representation of this agent."""
         pass
 
 
-def get_agent_for_key(human, key, **kwargs) -> Agent:
+def get_agent_for_key(human, key, config=dict()) -> Agent:
     if key == 'human':
         return human
 
     q = deque()
     q.append(Agent)
     while q:
-        a = q.pop()
+        a: Agent = q.pop()
         if a.key == key:
-            return a(**kwargs)
+            params = a.load_params(config)
+            return a(**params)
         q.extend(a.__subclasses__())
 
     raise NameError('Can\'t find agent of key {}'.format(key))
@@ -78,5 +88,9 @@ class RandomAgent(AIAgent):
 
         return (placement, rotation), None
 
-    def load_params(self, config):
+    @classmethod
+    def load_params(cls, config):
+        return dict()
+
+    def to_params(self):
         return dict()

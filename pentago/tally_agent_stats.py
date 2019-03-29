@@ -16,10 +16,10 @@ def main():
 
     agents = [pentago.get_agent_for_key(None,
                                         args.white_agent,
-                                        **json.loads(args.white_config)),
+                                        json.loads(args.white_config)),
               pentago.get_agent_for_key(None,
                                         args.black_agent,
-                                        **json.loads(args.black_config))]
+                                        json.loads(args.black_config))]
 
     black_wins = 0
     white_wins = 0

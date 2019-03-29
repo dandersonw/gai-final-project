@@ -1,4 +1,5 @@
 import pytest
+import json
 
 import pentago
 import pentago.agent
@@ -12,3 +13,7 @@ def test_get_agent_for_key():
 
     with pytest.raises(NameError):
         pentago.get_agent_for_key(None, 'foo')
+
+    agent = pentago.search_ai.MinimaxSearchAgent(depth=3)
+    config = json.loads(json.dumps(agent.to_params()))
+    assert pentago.get_agent_for_key(None, 'minimax', config).depth == 3

@@ -10,8 +10,12 @@ class ConsoleClient(agent.Agent, view.View):
     def __init__(self):
         pass
 
-    def load_params(self, config):
+    @classmethod
+    def load_params(cls, config):
         return dict()
+
+    def to_params(self):
+        raise NotImplementedError
 
     def render(self, model: game.Game):
         top_axis_label_h = 2

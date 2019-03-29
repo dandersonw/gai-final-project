@@ -3,3 +3,5 @@ from .render import render_board
 from .client import ConsoleClient
 from .controller import Controller
 from .agent import get_agent_for_key
+
+from . import learning_agent

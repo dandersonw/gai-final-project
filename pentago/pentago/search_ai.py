@@ -93,12 +93,19 @@ class MinimaxSearchAgent(agent.AIAgent):
         self.depth = depth
         self.evaluation_function = evaluation_function
 
-    def load_params(self, config):
+    @classmethod
+    def load_params(cls, config):
         result = {k: v for k, v in config.items() if k in {'depth'}}
         ef_key = config.get('evaluation_function')
         if ef_key is not None:
             result['evaluation_function'] = evaluation_function_for_str(ef_key)
         return result
+
+    def to_params(self):
+        # TODO: set up way of referring to evaluation functions
+        # I guess I need another factory pattern?
+        # It's not immediately important anyway
+        return {'depth': self.depth, 'evaluation_function': 'runs'}
 
     def _strategy(self, board):
         move = minimax_search(board,

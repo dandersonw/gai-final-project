@@ -14,10 +14,10 @@ def main():
     with pentago.ConsoleClient() as client:
         agents = [pentago.get_agent_for_key(client,
                                             args.white_agent,
-                                            **json.loads(args.white_config)),
+                                            json.loads(args.white_config)),
                   pentago.get_agent_for_key(client,
                                             args.black_agent,
-                                            **json.loads(args.black_config))]
+                                            json.loads(args.black_config))]
         controller = pentago.Controller(agents, client)
         controller.play_game()
 
