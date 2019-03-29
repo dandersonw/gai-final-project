@@ -1,7 +1,3 @@
-This directory is meant to be a Python package for the core Pentago code.
-
-The directly ML/RL related code will go in another package?
-
 It is intended that you install this package in your python virtualenv/Conda environment.
 
 You can play a console game with `play_console.py`:

@@ -82,6 +82,13 @@ def generate_rotation(q_i, q_j, direction):
     return rotation
 
 
+def flat_index_for_move(move):
+    placement, rotation = move
+    placement_idx = np.argmax(placement)
+    rotation_idx = np.argmax(np.abs(rotation))
+    return placement_idx * 8 + rotation_idx * 2 + (1 if np.ravel(rotation)[rotation_idx] == 1 else 0)
+
+
 @numba.jit(numba.int8[:, :](),
            nopython=True,
            cache=True)

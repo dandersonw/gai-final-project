@@ -111,5 +111,7 @@ class MinimaxSearchAgent(agent.AIAgent):
         move = minimax_search(board,
                               self.evaluation_function,
                               self.depth)
-        explanation = None
+        explanation = np.zeros([288], np.float32)
+        idx = game.flat_index_for_move(move)
+        explanation[idx] = 1
         return move, explanation
