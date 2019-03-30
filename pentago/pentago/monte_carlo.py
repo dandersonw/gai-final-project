@@ -2,7 +2,7 @@ import numpy as np
 
 from collections import deque
 
-from . import game, learning_agent
+from . import game
 
 
 class Node():
@@ -47,8 +47,7 @@ class Node():
 
     def select_action(self):
         u = self.edge_prior / (1 + self.edge_visit_counts)
-        logits = self.edge_action_values + u
-        logits = game.masked_softmax(self.board, logits)
+        logits = game.mask_move_logits(self.board, self.edge_action_values + u)
         idx = np.argmax(logits)
         return self.get_edge(idx)
 
@@ -95,8 +94,8 @@ def _backprop(path, end_node):
         idx = edge.idx
         p.edge_visit_counts[idx] += 1
         p.edge_evaluations[idx] += end_node.value * p.turn * end_node.turn
-        p.edge_action_values = (p.edge_evaluations[idx]
-                                / p.edge_visit_counts[idx])
+        p.edge_action_values[idx] = (p.edge_evaluations[idx]
+                                     / p.edge_visit_counts[idx])
 
 
 def _get_root_noise():

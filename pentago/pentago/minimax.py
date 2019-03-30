@@ -111,9 +111,8 @@ class MinimaxSearchAgent(agent.AIAgent):
         move = minimax_search(board,
                               self.evaluation_function,
                               self.depth)
-        explanation = np.full([game.PROBABILITY_OUT_DIM],
-                              1 / (game.PROBABILITY_OUT_DIM + 2),
-                              np.float32)
         idx = game.flat_index_for_move(move)
-        explanation[idx] += .5
+        explanation = np.ones([game.PROBABILITY_OUT_DIM], dtype=np.float32)
+        explanation[idx] += 5
+        explanation = game.masked_softmax(board, explanation)
         return move, explanation

@@ -116,13 +116,18 @@ def can_place_mask(board):
 
 
 @numba.jit(nopython=True)
-def masked_softmax(board, flat_logits):
-    logits = np.reshape(flat_logits, (6, 6, 2, 2, 2))
+def mask_move_logits(board, flat_logits):
     for i in range(6):
         for j in range(6):
             if board[i, j] != 0:
-                logits[i, j] = -np.inf
-    flat_logits = np.reshape(logits, (288,))
+                for k in range(8):
+                    flat_logits[(i * 6 + j) * 8 + k] = -np.inf
+    return flat_logits
+
+
+@numba.jit(nopython=True)
+def masked_softmax(board, flat_logits):
+    mask_move_logits(board, flat_logits)
     exp = np.exp(flat_logits)
     return exp / np.sum(exp)
 

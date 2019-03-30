@@ -27,7 +27,7 @@ class NeuralAgent(SelfPlayAgent):
     key = 'neural'
 
     def __init__(self, *, model_name='residual_conv_net',
-                 model_params=dict(),
+                 model_params=neural_model.DEFAULT_MODEL_PARAMS,
                  weights_path=None):
         self.model_name = model_name
         self.model_params = model_params
@@ -38,7 +38,9 @@ class NeuralAgent(SelfPlayAgent):
 
     def fit(self, exps: typing.List[memory.Experience]):
         x, y = experiences_to_fit_data(exps)
-        callbacks = [tf.keras.callbacks.EarlyStopping(mode='min', patience=10)]
+        callbacks = [tf.keras.callbacks.EarlyStopping(mode='min',
+                                                      patience=10,
+                                                      restore_best_weights=True)]
         self.model.fit(x=x, y=y,
                        validation_split=0.1,
                        callbacks=callbacks,
@@ -74,9 +76,14 @@ class NeuralAgent(SelfPlayAgent):
 
 
 def experiences_to_fit_data(exps: typing.List[memory.Experience]):
-    boards = np.stack([(e.board * e.turn)[:, :, None].astype(np.float32) for e in exps])
+    boards = np.stack([e.board[:, :, None].astype(np.float32) for e in exps])
     values = np.stack([e.value for e in exps])
+    boards = np.concatenate([np.rot90(boards, axes=(1, 2), k=k)
+                             for k in range(4)],
+                            axis=0)
+    values = np.concatenate([values] * 4, axis=0)
     policies = np.stack([e.explanation for e in exps])
+    policies = np.concatenate([policies] * 4, axis=0)
     x = {'board': boards}
     y = {'value_head': values,
          'policy_head': policies}

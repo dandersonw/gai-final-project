@@ -8,7 +8,7 @@ from . import game, agent, view
 class Experience():
     def __init__(self, model: game.Game):
         self.turn = model.turn
-        self.board = model.board
+        self.board = model.board * model.turn
 
     def add_explanation(self, explanation: agent.Explanation):
         self.explanation = explanation

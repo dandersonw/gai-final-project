@@ -18,17 +18,21 @@ def model_for_key(key) -> tf.keras.Model:
         return residual_conv_net
 
 
-def residual_conv_net():
+DEFAULT_MODEL_PARAMS = {'dense_regularization_const': 1e-2,
+                        'regularization_const': 0}
+
+
+def residual_conv_net(**config):
     board = Input(shape=[6, 6, 1],
                   dtype=tf.float32,
                   name='board')
 
-    features = _conv_layer(board, 3, 3)
-    features = _residual_layer(features, 3, 3)
-    features = _residual_layer(features, 3, 3)
+    features = _conv_layer(board, 9, 3, config)
+    features = _residual_layer(features, 9, 3, config)
+    features = _residual_layer(features, 9, 3, config)
 
-    value = _value_head(features)
-    policy = _policy_head(features)
+    value = _value_head(features, config)
+    policy = _policy_head(features, config)
 
     model = tf.keras.Model(inputs=[board],
                            outputs=[policy, value])
@@ -38,10 +42,6 @@ def residual_conv_net():
 
 
 def _policy_loss(mc_values, pred_values):
-    # mc_values = tf.reshape(mc_values,
-    #                        tf.stack([tf.shape(mc_values)[0], -1]))
-    # pred_values = tf.reshape(pred_values,
-    #                          tf.stack([tf.shape(pred_values)[0], -1]))
     pred_values = tf.where(tf.equal(mc_values, tf.zeros_like(mc_values)),
                            tf.tile(tf.expand_dims(tf.expand_dims(-tf.float32.max, 0), 1),
                                    tf.shape(pred_values)),
@@ -50,21 +50,21 @@ def _policy_loss(mc_values, pred_values):
                                                       logits=pred_values)
 
 
-def _value_head(inputs):
-    convd = _conv_layer(inputs, 1, 1)
+def _value_head(inputs, config):
+    convd = _conv_layer(inputs, 1, 1, config)
     flattened = Flatten()(convd)
-    out = Dense(20,
-                use_bias=False,
-                activation=None,
-                kernel_regularizer=l2(1e-3))(flattened)
-    out = Dense(1,
-                name='value_head',
-                activation='tanh')(out)
+    layer = Dense(20,
+                  kernel_regularizer=l2(config['dense_regularization_const']))
+    out = layer(flattened)
+    layer = Dense(1,
+                  name='value_head',
+                  activation='tanh')
+    out = layer(out)
     return out
 
 
-def _policy_head(inputs):
-    out = _conv_layer(inputs, 4, 1)
+def _policy_head(inputs, config):
+    out = _conv_layer(inputs, 8, 1, config)
     out = Flatten()(out)
     out = Dense(game.PROBABILITY_OUT_DIM,
                 use_bias=False,
@@ -73,21 +73,23 @@ def _policy_head(inputs):
     return out
 
 
-def _conv_layer(inputs, filters, kernel_size):
+def _conv_layer(inputs, filters, kernel_size, config):
     layer = Conv2D(filters,
                    kernel_size,
-                   use_bias=False)
+                   padding='same',
+                   use_bias=False,
+                   kernel_regularizer=l2(config['regularization_const']))
     out = layer(inputs)
     out = BatchNormalization(axis=-1)(out)
     out = LeakyReLU()(out)
     return out
 
 
-def _residual_layer(inputs, filters, kernel_size):
+def _residual_layer(inputs, filters, kernel_size, config):
     layer = Conv2D(filters,
                    kernel_size,
                    use_bias=False,
-                   kernel_regularizer=l2(1e-3),
+                   kernel_regularizer=l2(config['regularization_const']),
                    padding='same')
     out = layer(inputs)
     out = BatchNormalization(axis=-1)(out)
