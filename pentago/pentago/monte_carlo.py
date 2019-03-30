@@ -15,7 +15,7 @@ class Node():
         self.edge_visit_counts = None
         self.edge_evaluations = None
         self.edge_action_values = None
-        self.game_over = game.check_game_over(self.board)
+        self.game_over = game.check_game_over(self.board * turn)
 
     def is_leaf(self):
         return self.edges is None or self.game_over is not None
@@ -47,7 +47,9 @@ class Node():
 
     def select_action(self):
         u = self.edge_prior / (1 + self.edge_visit_counts)
-        idx = np.argmax(self.edge_action_values + u)
+        logits = self.edge_action_values + u
+        logits = game.masked_softmax(self.board, logits)
+        idx = np.argmax(logits)
         return self.get_edge(idx)
 
 
@@ -68,7 +70,7 @@ def tree_search(board,
     for i in range(num_simulations):
         path, end_node = _select_path(root)
         end_node.expand(model)
-        _backprop(path, end_node.value)
+        _backprop(path, end_node)
 
     visit_counts = root.edge_visit_counts
     pi = ((visit_counts ** (1 / temperature))
@@ -86,13 +88,13 @@ def _select_path(root):
     return path, node
 
 
-def _backprop(path, value):
+def _backprop(path, end_node):
     while path:
         edge = path.pop()
         p = edge.parent
         idx = edge.idx
         p.edge_visit_counts[idx] += 1
-        p.edge_evaluations[idx] += value
+        p.edge_evaluations[idx] += end_node.value * p.turn * end_node.turn
         p.edge_action_values = (p.edge_evaluations[idx]
                                 / p.edge_visit_counts[idx])
 

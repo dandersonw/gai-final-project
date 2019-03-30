@@ -17,6 +17,9 @@ class ConsoleClient(agent.Agent, view.View):
     def to_params(self):
         raise NotImplementedError
 
+    def move_made(self, move, explanation):
+        pass
+
     def render(self, model: game.Game):
         top_axis_label_h = 2
         left_axis_label_w = 4

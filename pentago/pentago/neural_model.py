@@ -43,9 +43,11 @@ def _policy_loss(mc_values, pred_values):
     # pred_values = tf.reshape(pred_values,
     #                          tf.stack([tf.shape(pred_values)[0], -1]))
     pred_values = tf.where(tf.equal(mc_values, tf.zeros_like(mc_values)),
-                           tf.zeros_like(pred_values),
+                           tf.tile(tf.expand_dims(tf.expand_dims(-tf.float32.max, 0), 1),
+                                   tf.shape(pred_values)),
                            pred_values)
-    return tf.nn.softmax_cross_entropy_with_logits_v2(mc_values, pred_values)
+    return tf.nn.softmax_cross_entropy_with_logits_v2(labels=mc_values,
+                                                      logits=pred_values)
 
 
 def _value_head(inputs):

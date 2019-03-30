@@ -38,7 +38,12 @@ class NeuralAgent(SelfPlayAgent):
 
     def fit(self, exps: typing.List[memory.Experience]):
         x, y = experiences_to_fit_data(exps)
-        self.model.fit(x=x, y=y, batch_size=256, epochs=5)
+        callbacks = [tf.keras.callbacks.EarlyStopping(mode='min', patience=10)]
+        self.model.fit(x=x, y=y,
+                       validation_split=0.1,
+                       callbacks=callbacks,
+                       batch_size=256,
+                       epochs=100)
 
     def predict(self, board):
         logits, value = self.model.predict(board[None, :, :, None].astype(np.float32))
