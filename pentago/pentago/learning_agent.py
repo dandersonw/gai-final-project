@@ -26,7 +26,9 @@ class SelfPlayAgent(agent.AIAgent):
 class NeuralAgent(SelfPlayAgent):
     key = 'neural'
 
-    def __init__(self, *, model_name, model_params, weights_path=None):
+    def __init__(self, *, model_name='residual_conv_net',
+                 model_params=dict(),
+                 weights_path=None):
         self.model_name = model_name
         self.model_params = model_params
         self.model: tf.keras.Model \
@@ -52,12 +54,14 @@ class NeuralAgent(SelfPlayAgent):
 
     @classmethod
     def load_params(cls, config):
-        return dict()
+        keys = {'model_name', 'model_params', 'weights_path'}
+        keys = keys.intersection(config.keys())
+        return {k: config[k] for k in keys}
 
     def to_params(self):
         weights_name = ''.join(random.SystemRandom().choice(string.ascii_uppercase)
                                for _ in range(10))
-        weights_path = util.AI_RESOURCE_PATH / weights_name
+        weights_path = str(util.AI_RESOURCE_PATH / weights_name)
         self.model.save_weights(weights_path)
         return {'model_name': self.model_name,
                 'model_params': self.model_params,
