@@ -17,6 +17,10 @@ BLACK_TURN = -1
 
 N_IN_A_ROW = 5
 
+PROBABILITY_OUT_SHAPE = (6, 6, 2, 2, 2)
+PROBABILITY_OUT_DIM = 6 * 6 * 2 * 2 * 2
+
+
 Board = np.ndarray
 # dims = [BOARD_H, BOARD_W], dtype = np.uint8
 # values of 0 represent a blank space
@@ -89,6 +93,14 @@ def flat_index_for_move(move):
     return placement_idx * 8 + rotation_idx * 2 + (1 if np.ravel(rotation)[rotation_idx] == 1 else 0)
 
 
+def move_from_flat_idx(idx):
+    idx = np.unravel_index(idx, PROBABILITY_OUT_SHAPE)
+    i, j, q_i, q_j, d = idx
+    d = 1 if d == 1 else -1
+    return (generate_placement_from_indices(i, j),
+            generate_rotation(q_i, q_j, d))
+
+
 @numba.jit(numba.int8[:, :](),
            nopython=True,
            cache=True)
@@ -101,6 +113,18 @@ def generate_clean_board():
            cache=True)
 def can_place_mask(board):
     return board == 0
+
+
+@numba.jit(nopython=True)
+def masked_softmax(board, flat_logits):
+    for i in range(6):
+        for j in range(6):
+            if board[i, j] != 0:
+                logit_idx = (i * 6 + j) * 8
+                for k in range(8):
+                    flat_logits[logit_idx + k] = 0
+    exp = np.exp(flat_logits)
+    return exp / np.sum(exp)
 
 
 @numba.jit(nopython=True, cache=True)

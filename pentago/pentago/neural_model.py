@@ -13,10 +13,6 @@ from tensorflow.keras.losses import mean_squared_error
 from . import game
 
 
-PROBABILITY_OUT_SHAPE = (6, 6, 2, 2, 2)
-PROBABILITY_OUT_DIM = 6 * 6 * 2 * 2 * 2
-
-
 def model_for_key(key) -> tf.keras.Model:
     if key == 'residual_conv_net':
         return residual_conv_net
@@ -68,7 +64,7 @@ def _value_head(inputs):
 def _policy_head(inputs):
     out = _conv_layer(inputs, 4, 1)
     out = Flatten()(out)
-    out = Dense(PROBABILITY_OUT_DIM,
+    out = Dense(game.PROBABILITY_OUT_DIM,
                 use_bias=False,
                 activation=None,
                 name='policy_head')(out)
@@ -96,8 +92,3 @@ def _residual_layer(inputs, filters, kernel_size):
     out = tf.keras.layers.add([inputs, out])
     out = LeakyReLU()(out)
     return out
-
-
-def board_to_input(board: game.Board):
-    # add a channels dimension
-    return np.cast(board[:, :, None], np.float32)
