@@ -53,6 +53,7 @@ class NeuralAgent(SelfPlayAgent):
                        validation_split=0.1,
                        callbacks=callbacks,
                        batch_size=256,
+                       verbose=2,
                        epochs=100)
 
     def predict(self, board):
