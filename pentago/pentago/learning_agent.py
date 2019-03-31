@@ -22,15 +22,23 @@ class SelfPlayAgent(agent.AIAgent):
     def predict(self, board) -> typing.Tuple[Policy, Value]:
         pass
 
+    @abc.abstractmethod
+    def set_evaluation_mode(self, evaluation_mode):
+        pass
+
 
 class NeuralAgent(SelfPlayAgent):
     key = 'neural'
 
-    def __init__(self, *, model_name='residual_conv_net',
+    def __init__(self, *,
+                 model_name='residual_conv_net',
                  model_params=neural_model.DEFAULT_MODEL_PARAMS,
+                 mcts_simulations=400,
                  weights_path=None):
         self.model_name = model_name
         self.model_params = model_params
+        self.mcts_simulations = mcts_simulations
+        self.evaluation_mode = False
         self.model: tf.keras.Model \
             = neural_model.model_for_key(model_name)(**model_params)
         if weights_path is not None:
@@ -55,13 +63,20 @@ class NeuralAgent(SelfPlayAgent):
         return probs, value
 
     def _strategy(self, board):
-        pi = monte_carlo.tree_search(board, self, temperature=0.5)
+        temperature = .1 if self.evaluation_mode else 1
+        pi = monte_carlo.tree_search(board,
+                                     self,
+                                     num_simulations=self.mcts_simulations,
+                                     temperature=temperature)
         idx = np.random.choice(game.PROBABILITY_OUT_DIM, p=pi)
         return game.move_from_flat_idx(idx), pi
 
+    def set_evaluation_mode(self, evaluation_mode):
+        self.evaluation_mode = evaluation_mode
+
     @classmethod
     def load_params(cls, config):
-        keys = {'model_name', 'model_params', 'weights_path'}
+        keys = {'model_name', 'model_params', 'weights_path', 'mcts_simulations'}
         keys = keys.intersection(config.keys())
         return {k: config[k] for k in keys}
 
@@ -72,7 +87,8 @@ class NeuralAgent(SelfPlayAgent):
         self.model.save_weights(weights_path)
         return {'model_name': self.model_name,
                 'model_params': self.model_params,
-                'weights_path': weights_path}
+                'weights_path': weights_path,
+                'mcts_simulations': self.mcts_simulations}
 
 
 def experiences_to_fit_data(exps: typing.List[memory.Experience]):
@@ -83,8 +99,17 @@ def experiences_to_fit_data(exps: typing.List[memory.Experience]):
                             axis=0)
     values = np.concatenate([values] * 4, axis=0)
     policies = np.stack([e.explanation for e in exps])
-    policies = np.concatenate([policies] * 4, axis=0)
+    policies = np.concatenate([_rotate_policy(policies, k)
+                               for k in range(4)],
+                              axis=0)
     x = {'board': boards}
     y = {'value_head': values,
          'policy_head': policies}
     return x, y
+
+
+def _rotate_policy(policy, k):
+    result = np.reshape(policy, [-1, *game.PROBABILITY_OUT_SHAPE])
+    result = np.rot90(result, k=k, axes=(1, 2))
+    result = np.rot90(result, k=k, axes=(3, 4))
+    return np.reshape(result, policy.shape)

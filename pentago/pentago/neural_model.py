@@ -19,7 +19,9 @@ def model_for_key(key) -> tf.keras.Model:
 
 
 DEFAULT_MODEL_PARAMS = {'dense_regularization_const': 1e-2,
-                        'regularization_const': 0}
+                        'regularization_const': 0,
+                        'num_layers': 5,
+                        'num_filters': 64}
 
 
 def residual_conv_net(**config):
@@ -27,9 +29,9 @@ def residual_conv_net(**config):
                   dtype=tf.float32,
                   name='board')
 
-    features = _conv_layer(board, 9, 3, config)
-    features = _residual_layer(features, 9, 3, config)
-    features = _residual_layer(features, 9, 3, config)
+    features = _conv_layer(board, config['num_filters'], 3, config)
+    for i in range(config['num_layers']):
+        features = _residual_layer(features, config['num_filters'], 3, config)
 
     value = _value_head(features, config)
     policy = _policy_head(features, config)
