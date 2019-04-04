@@ -46,7 +46,9 @@ class Node():
         return self.edges[idx]
 
     def select_action(self):
-        u = self.edge_prior / (1 + self.edge_visit_counts)
+        cpuct = 2
+        u = (cpuct * self.edge_prior * np.sqrt(np.sum(self.edge_visit_counts))
+             / (1 + self.edge_visit_counts))
         logits = game.mask_move_logits(self.board, self.edge_action_values + u)
         idx = np.argmax(logits)
         return self.get_edge(idx)
