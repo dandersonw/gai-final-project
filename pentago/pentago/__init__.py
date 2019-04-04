@@ -5,3 +5,4 @@ from .controller import Controller
 from .agent import get_agent_for_key
 
 from . import learning_agent
+from . import minimax
