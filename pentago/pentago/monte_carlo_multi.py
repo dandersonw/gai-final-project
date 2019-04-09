@@ -1,11 +1,20 @@
 import numpy as np
+import multiprocessing
 
 from collections import deque
 
 from . import game, zobrist
 
+THREAD_COUNT = 4
+root = None
+model = None
 
-class Node():
+searched_nodes = {}
+
+ # ----------- SCRAP EVERYTHING BELOW AND REWRITE
+
+
+class Node:
     def __init__(self, board, turn):
         self.board = board
         self.turn = turn
@@ -53,22 +62,37 @@ class Node():
         return self.get_edge(idx)
 
 
-class Edge():
+class Edge:
     def __init__(self, parent, child, idx):
         self.parent = parent
         self.child = child
         self.idx = idx
 
 
+def rollout(iterations):
+    while iterations > 0:
+        path, end_node = _select_path(root)
+        end_node.expand(model)
+        _backprop(path, end_node)
+
+
 def tree_search(board,
-                model,
+                _model,
                 temperature=1e-2,
                 num_simulations=100):
+    global root
+    global model
+    model = _model
     root = Node(board, 1)
     root.expand(model, noise=_get_root_noise())
+    global searched_nodes
+    searched_nodes = {}
+
+    # Create subprocesses
+    threads = [multiprocessing.Process(target=rollout(num_simulations/THREAD_COUNT)) for x in THREAD_COUNT]
 
     for i in range(num_simulations):
-        path, end_node = _select_path(root)
+        path, end_node = _select_path()
         end_node.expand(model)
         _backprop(path, end_node)
 
@@ -78,7 +102,7 @@ def tree_search(board,
     return pi
 
 
-def _select_path(root):
+def _select_path():
     node = root
     path = deque()
     while not node.is_leaf():

@@ -3,4 +3,5 @@ numba
 pytest
 tqdm
 scipy
-tensorflow=1.13
+tensorflow
+keras

@@ -65,10 +65,13 @@ class NeuralAgent(SelfPlayAgent):
 
     def _strategy(self, board):
         temperature = .1 if self.evaluation_mode else 1
+
+        # TODO Insertion point for multiprocessing
         pi = monte_carlo.tree_search(board,
                                      self,
                                      num_simulations=self.mcts_simulations,
                                      temperature=temperature)
+
         idx = np.random.choice(game.PROBABILITY_OUT_DIM, p=pi)
         return game.move_from_flat_idx(idx), pi
 

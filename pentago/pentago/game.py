@@ -3,6 +3,8 @@ import numpy as np
 import numba
 import typing
 
+from .import zobrist
+
 
 # Note: I reserve the right to have these values hardcoded in other locations
 # constants are provided for convenience only
@@ -51,10 +53,11 @@ class Game():
     def __init__(self):
         self.board: Board = generate_clean_board()
         self.turn = WHITE_TURN
+        self.key = zobrist.encode_board(self.board, WHITE_TURN)
 
     def make_move(self, move: Move):
         placement, rotation = move
-        self.board = apply_move(self.board, self.turn, placement, rotation)
+        self.board = apply_move(self.board, self.key, self.turn, placement, rotation)
         self.turn *= -1
 
     def check_game_over(self) -> typing.Optional[int]:
@@ -162,17 +165,32 @@ def _apply_rotation(board, rotation):
     _make_swaps(board, q_i, q_j, corners, direction)
 
 
-@numba.jit(numba.int8[:, :](numba.int8[:, :],
-                            numba.int8,
-                            numba.int8[:, :],
-                            numba.int8[:, :]),
-           nopython=True,
-           cache=True)
-def apply_move(board, turn, placement, rotation):
-    board = board + placement.astype(np.int8) * turn
-    _apply_rotation(board, rotation)
-    return board
+# @numba.jit(numba.int8[:, :](numba.int8[:, :],
+                            # numba.pyobject,
+                            # numba.int8,
+                            # numba.int8[:, :],
+                            # numba.int8[:, :]),
+           # nopython=True,
+           # cache=True)
+def apply_move(board, key, turn, placement, rotation):
+    new_key, new_board = check_move(key, turn, placement, rotation)
+    if new_key:
+        return new_board
+    else:
+        # Board not explored, manually change and add to saved boards
+        board = board + placement.astype(np.int8) * turn
+        _apply_rotation(board, rotation)
+        zobrist.encode_board(board, turn * -1)
+        return board
 
+
+def check_move(key, turn, placement, rotation):
+    try:
+        # Check if board has already been seen in Zobrist hashes
+        result = zobrist.decode_board(zobrist.progress_key(key, turn, placement, rotation))
+        return True, result
+    except KeyError:
+        return False, None
 
 @numba.jit(nopython=True)
 def _check_line(board, i, j, i_stride, j_stride):

@@ -1,14 +1,14 @@
 import tensorflow as tf
 import numpy as np
 
-from tensorflow.keras.layers import Input
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import LeakyReLU
-from tensorflow.keras.layers import Flatten
-from tensorflow.keras.regularizers import l2
-from tensorflow.keras.losses import mean_squared_error
+from keras.layers import Input
+from keras.layers import Dense
+from keras.layers import Conv2D
+from keras.layers import BatchNormalization
+from keras.layers import LeakyReLU
+from keras.layers import Flatten
+from keras.regularizers import l2
+from keras.losses import mean_squared_error
 
 from . import game
 
