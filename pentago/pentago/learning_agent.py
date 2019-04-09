@@ -6,7 +6,7 @@ import random
 import string
 import typing
 
-from . import game, agent, memory, neural_model, util, monte_carlo
+from . import game, agent, memory, neural_model, util, monte_carlo_multi
 
 
 Policy = np.ndarray
@@ -67,7 +67,7 @@ class NeuralAgent(SelfPlayAgent):
         temperature = .1 if self.evaluation_mode else 1
 
         # TODO Insertion point for multiprocessing
-        pi = monte_carlo.tree_search(board,
+        pi = monte_carlo_multi.tree_search(board,
                                      self,
                                      num_simulations=self.mcts_simulations,
                                      temperature=temperature)

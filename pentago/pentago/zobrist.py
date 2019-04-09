@@ -20,8 +20,6 @@ rotation_indices = [0, 6, 12, 13, 14, 8, 2, 1]
 #  0  1  2  3  4  5
 
 
-
-
 def pad_key(key):
     return '{0:0{1}x}'.format(key, 16)
 

@@ -11,14 +11,15 @@ model = None
 
 searched_nodes = {}
 
- # ----------- SCRAP EVERYTHING BELOW AND REWRITE
-
 
 class Node:
-    def __init__(self, board, turn):
+    def __init__(self, board, turn, key=None):
         self.board = board
         self.turn = turn
-        self.key = zobrist.encode_board(board, turn)
+        if key is None:
+            self.key = zobrist.encode_board(board, turn)
+        else:
+            self.key = key
         self.edges = None
         self.value = None
         self.edge_prior = None
@@ -48,7 +49,7 @@ class Node:
     def get_edge(self, idx):
         if self.edges[idx] is None:
             move = game.move_from_flat_idx(idx)
-            new_board = game.apply_move(self.board, self.key, self.turn, *move)
+            new_board = game.apply_move(self.board, self.turn, *move)
             new_turn = self.turn * -1
             new_node = Node(new_board, new_turn)
             edge = Edge(self, new_node, idx)
@@ -71,9 +72,11 @@ class Edge:
 
 def rollout(iterations):
     while iterations > 0:
-        path, end_node = _select_path(root)
+        path, end_node = _select_path()
         end_node.expand(model)
         _backprop(path, end_node)
+        iterations -= 1
+
 
 
 def tree_search(board,
@@ -89,12 +92,13 @@ def tree_search(board,
     searched_nodes = {}
 
     # Create subprocesses
-    threads = [multiprocessing.Process(target=rollout(num_simulations/THREAD_COUNT)) for x in THREAD_COUNT]
+    threads = [multiprocessing.Process(target=rollout(num_simulations/THREAD_COUNT)) for x in range(THREAD_COUNT)]
 
-    for i in range(num_simulations):
-        path, end_node = _select_path()
-        end_node.expand(model)
-        _backprop(path, end_node)
+    for i in range(THREAD_COUNT):
+        threads[i].start()
+
+    for i in range(THREAD_COUNT):
+        threads[i].join()
 
     visit_counts = root.edge_visit_counts
     pi = ((visit_counts ** (1 / temperature))

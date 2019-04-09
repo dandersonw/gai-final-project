@@ -31,7 +31,7 @@ def _minimax_search(board, depth, sign, evaluation_function):
                 for q_j in np.random.permutation(2):
                     for d in [-1, 1]:
                         rotation = game.generate_rotation(q_i, q_j, d)
-                        new_board = game.apply_move(board, 0, sign, placement, rotation)
+                        new_board = game.apply_move(board, sign, placement, rotation)
                         val, _ = _minimax_search(new_board,
                                                  depth - 1,
                                                  -1 * sign,

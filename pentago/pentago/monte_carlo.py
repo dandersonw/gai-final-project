@@ -39,7 +39,7 @@ class Node():
     def get_edge(self, idx):
         if self.edges[idx] is None:
             move = game.move_from_flat_idx(idx)
-            new_board = game.apply_move(self.board, self.key, self.turn, *move)
+            new_board = game.apply_move(self.board, self.turn, *move)
             new_turn = self.turn * -1
             new_node = Node(new_board, new_turn)
             edge = Edge(self, new_node, idx)
