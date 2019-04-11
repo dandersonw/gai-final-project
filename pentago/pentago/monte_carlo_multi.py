@@ -5,7 +5,7 @@ from collections import deque
 
 from . import game, zobrist
 
-THREAD_COUNT = 8
+THREAD_COUNT = 64
 root = None
 model = None
 

@@ -6,3 +6,6 @@ from .agent import get_agent_for_key
 
 from . import learning_agent
 from . import minimax
+import os
+
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
