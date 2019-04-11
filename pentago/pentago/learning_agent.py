@@ -44,17 +44,22 @@ class NeuralAgent(SelfPlayAgent):
         if weights_path is not None:
             self.model.load_weights(weights_path)
 
-    def fit(self, exps: typing.List[memory.Experience]):
-        x, y = experiences_to_fit_data(exps)
+    def fit(self,
+            exps: typing.List[memory.Experience],
+            augment=True,
+            **kwargs):
+        x, y = experiences_to_fit_data(exps, augment=augment)
         callbacks = [tf.keras.callbacks.EarlyStopping(mode='min',
                                                       patience=10,
                                                       restore_best_weights=True)]
+        fit_kwargs = {'validation_split': 0.1,
+                      'callbacks': callbacks,
+                      'batch_size': 1024,
+                      'verbose': 2,
+                      'epochs': 100,
+                      **kwargs}
         self.model.fit(x=x, y=y,
-                       validation_split=0.1,
-                       callbacks=callbacks,
-                       batch_size=256,
-                       verbose=2,
-                       epochs=100)
+                       **fit_kwargs)
 
     def predict(self, board):
         logits, value = self.model.predict(board[None, :, :, None].astype(np.float32))
@@ -95,17 +100,18 @@ class NeuralAgent(SelfPlayAgent):
                 'mcts_simulations': self.mcts_simulations}
 
 
-def experiences_to_fit_data(exps: typing.List[memory.Experience]):
+def experiences_to_fit_data(exps: typing.List[memory.Experience], augment=True):
     boards = np.stack([e.board[:, :, None].astype(np.float32) for e in exps])
     values = np.stack([e.value for e in exps])
-    boards = np.concatenate([np.rot90(boards, axes=(1, 2), k=k)
-                             for k in range(4)],
-                            axis=0)
-    values = np.concatenate([values] * 4, axis=0)
     policies = np.stack([e.explanation for e in exps])
-    policies = np.concatenate([_rotate_policy(policies, k)
-                               for k in range(4)],
-                              axis=0)
+    if augment:
+        boards = np.concatenate([np.rot90(boards, axes=(1, 2), k=k)
+                                 for k in range(4)],
+                                axis=0)
+        values = np.concatenate([values] * 4, axis=0)
+        policies = np.concatenate([_rotate_policy(policies, k)
+                                   for k in range(4)],
+                                  axis=0)
     x = {'board': boards}
     y = {'value_head': values,
          'policy_head': policies}
