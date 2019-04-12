@@ -34,6 +34,7 @@ class NeuralAgent(SelfPlayAgent):
                  model_name='residual_conv_net',
                  model_params=neural_model.DEFAULT_MODEL_PARAMS,
                  mcts_simulations=400,
+                 weights=None,
                  weights_path=None):
         self.model_name = model_name
         self.model_params = model_params
@@ -43,6 +44,8 @@ class NeuralAgent(SelfPlayAgent):
             = neural_model.model_for_key(model_name)(**model_params)
         if weights_path is not None:
             self.model.load_weights(weights_path)
+        if weights is not None:
+            self.model.set_weights(weights)
 
     def fit(self,
             exps: typing.List[memory.Experience],
@@ -82,19 +85,27 @@ class NeuralAgent(SelfPlayAgent):
 
     @classmethod
     def load_params(cls, config):
-        keys = {'model_name', 'model_params', 'weights_path', 'mcts_simulations'}
+        keys = {'model_name',
+                'model_params',
+                'weights_path',
+                'mcts_simulations',
+                'weights'}
         keys = keys.intersection(config.keys())
         return {k: config[k] for k in keys}
 
-    def to_params(self):
-        weights_name = ''.join(random.SystemRandom().choice(string.ascii_uppercase)
-                               for _ in range(10))
-        weights_path = str(util.AI_RESOURCE_PATH / weights_name)
-        self.model.save_weights(weights_path)
-        return {'model_name': self.model_name,
-                'model_params': self.model_params,
-                'weights_path': weights_path,
-                'mcts_simulations': self.mcts_simulations}
+    def to_params(self, in_memory_weights=False):
+        results = {'model_name': self.model_name,
+                   'model_params': self.model_params,
+                   'mcts_simulations': self.mcts_simulations}
+        if in_memory_weights:
+            results['weights'] = self.model.get_weights()
+        else:
+            weights_name = ''.join(random.SystemRandom().choice(string.ascii_uppercase)
+                                   for _ in range(10))
+            weights_path = str(util.AI_RESOURCE_PATH / weights_name)
+            self.model.save_weights(weights_path)
+            results['weights_path'] = weights_path
+        return results
 
 
 def experiences_to_fit_data(exps: typing.List[memory.Experience], augment=True):
