@@ -33,7 +33,7 @@ def tally_wins(agents: typing.List[agent.Agent],
 
 
 def _run_one_trial(agents, trials, t, results, verbose):
-    if verbose:
+    if trials is not None and verbose:
         trials.set_description('1/-1/D: {}/{}/{}'.format(results[1],
                                                          results[-1],
                                                          results[0]))
