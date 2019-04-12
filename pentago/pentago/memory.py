@@ -34,5 +34,10 @@ class MemoryView(view.View):
             self.memory.append(exp)
         self.temp_memory.clear()
 
+    def add_experiences(self, mem_list):
+        for mem in mem_list:
+            for exp in mem.memory:
+                self.memory.append(exp)
+
     def get_experiences(self) -> typing.List[Experience]:
         return list(self.memory)

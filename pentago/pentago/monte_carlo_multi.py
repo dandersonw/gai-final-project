@@ -1,15 +1,12 @@
 import numpy as np
-import multiprocessing
+import multiprocessing.pool
+import multiprocessing.lock
 
 from collections import deque
 
 from . import game, zobrist
 
 THREAD_COUNT = 64
-root = None
-model = None
-
-searched_nodes = {}
 
 
 class Node:
@@ -27,6 +24,7 @@ class Node:
         self.edge_evaluations = None
         self.edge_action_values = None
         self.game_over = game.check_game_over(self.board * turn)
+        self.lock = multiprocessing.Lock()
 
     def is_leaf(self):
         return self.edges is None or self.game_over is not None
@@ -70,35 +68,18 @@ class Edge:
         self.idx = idx
 
 
-def rollout(iterations):
-    while iterations > 0:
-        path, end_node = _select_path()
-        end_node.expand(model)
-        _backprop(path, end_node)
-        iterations -= 1
-
-
-
 def tree_search(board,
                 _model,
                 temperature=1e-2,
                 num_simulations=100):
-    global root
-    global model
     model = _model
     root = Node(board, 1)
     root.expand(model, noise=_get_root_noise())
-    global searched_nodes
-    searched_nodes = {}
 
     # Create subprocesses
-    threads = [multiprocessing.Process(target=rollout(num_simulations/THREAD_COUNT)) for x in range(THREAD_COUNT)]
-
-    for i in range(THREAD_COUNT):
-        threads[i].start()
-
-    for i in range(THREAD_COUNT):
-        threads[i].join()
+    with multiprocessing.pool.Pool(processes=THREAD_COUNT) as p:
+        [p.apply_async(rollout, (num_simulations/THREAD_COUNT, model, root)) for x in range(THREAD_COUNT)]
+        p.join
 
     visit_counts = root.edge_visit_counts
     pi = ((visit_counts ** (1 / temperature))
@@ -106,12 +87,28 @@ def tree_search(board,
     return pi
 
 
-def _select_path():
+def rollout(iterations, model, root):
+    while iterations > 0:
+        path, end_node = _select_path(root)
+        end_node.expand(model)
+        # Critical Section - Updating data along path on shared root object
+        root.lock.acquire()
+        _backprop(path, end_node)
+        root.lock.release()
+        # End Critical Section
+        iterations -= 1
+
+
+def _select_path(root):
     node = root
     path = deque()
     while not node.is_leaf():
+        # Critical Section - Changing shared node object
+        node.lock.acquire()
         edge = node.select_action()
         path.append(edge)
+        # End Critical Section
+        node.lock.release()
         node = edge.child
     return path, node
 
