@@ -1,3 +1,5 @@
+import tensorflow as tf
+
 import itertools
 import time
 import ray
@@ -20,7 +22,10 @@ def self_play_games(agent: agent.Agent,
 
     """
     agent_key = agent.key
-    agent_params = agent.to_params(in_memory_weights=True)
+    if agent_key == 'neural':
+        agent_params = agent.to_params(in_memory_weights=True)
+    else:
+        agent_params = agent.to_params()
     start_time = time.time()
     workers = _get_workers('self_play', num_workers)
 
@@ -53,7 +58,11 @@ def tally_wins(agents,
                num_workers=2):
     agent_specs = []
     for agentt in agents:
-        agent_specs.append([agentt.key, agentt.to_params(in_memory_weights=True)])
+        if agentt.key == 'neural':
+            params = agentt.to_params(in_memory_weights=True)
+        else:
+            params = agentt.to_params()
+        agent_specs.append([agentt.key, params])
 
     workers = _get_workers('tally_wins', num_workers)
 
@@ -76,7 +85,10 @@ class SelfPlayWorker():
 
     def set_agent(self, agent_key, agent_params):
         if self.agent is not None:
+            if self.agent.key == 'neural':
+                del self.agent.model
             del self.agent
+            tf.keras.backend.clear_session()
         self.agent = agent.get_agent_for_key(None,
                                              agent_key,
                                              agent_params)
@@ -96,7 +108,10 @@ class TallyWinWorker():
     def set_agents(self, agent_specs):
         if self.agents is not None:
             for agentt in self.agents:
+                if agentt.key == 'neural':
+                    del agentt.model
                 del agentt
+            tf.keras.backend.clear_session()
         self.agents = []
         for agent_key, agent_params in agent_specs:
             self.agents.append(agent.get_agent_for_key(None,
