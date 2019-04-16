@@ -6,6 +6,14 @@ You can play a console game with `play_console.py`:
 python play_console.py --black-agent random --white-agent human
 ```
 
+You can download a pretrained (but not very good) model from [http://derickanderson.xyz/files/trained_pentago_model.pkl](my personal website).
+For completeness, I note that you shouldn't run untrusted Python pickle files.
+You can play against that model with:
+
+``` shell
+python play_console.py --black-agent neural --black-pickle trained_pentago_model.pkl
+```
+
 Agents are specified with strings and configs.
 Available agents are:
 

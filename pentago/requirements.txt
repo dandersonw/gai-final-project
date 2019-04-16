@@ -4,3 +4,5 @@ pytest
 tqdm
 scipy
 tensorflow=1.13
+ray
+dill
