@@ -37,6 +37,10 @@ class Agent(abc.ABC):
 
 
 def get_agent_for_key(human, key, config=dict()) -> Agent:
+    """Search through extant subclasses of Agent for the one that matches key and
+    then instantiate that agent with config.
+
+    """
     if key == 'human':
         return human
 
