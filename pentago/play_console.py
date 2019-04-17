@@ -13,22 +13,22 @@ def main():
                         help='Config with which to initialize the black agent.')
     parser.add_argument('--black-pickle',
                         help='Config with which to initialize the black agent. '
-                        'Expects the path to a pickle file. Supersedes --black-config')
+                        'Expects the path to a pickle file. Superseded by --black-config')
     parser.add_argument('--white-agent', default='human')
     parser.add_argument('--white-config', default='{}')
     parser.add_argument('--white-pickle',
                         help='Config with which to initialize the white agent. '
-                        'Expects the path to a pickle file. Supersedes --white-config')
+                        'Expects the path to a pickle file. Superseded by --white-config')
     args = parser.parse_args()
 
-    if args.white_pickle is None:
-        white_config = json.loads(args.white_config)
-    else:
-        white_config = pickle.load(open(args.white_pickle, mode='rb'))
-    if args.black_pickle is None:
-        black_config = json.loads(args.black_config)
-    else:
-        black_config = pickle.load(open(args.black_pickle, mode='rb'))
+    white_config = json.loads(args.white_config)
+    if args.white_pickle is not None:
+        white_config = {**pickle.load(open(args.white_pickle, mode='rb')),
+                        **white_config}
+    black_config = json.loads(args.black_config)
+    if args.black_pickle is not None:
+        black_config = {**pickle.load(open(args.black_pickle, mode='rb')),
+                        **black_config}
 
     with pentago.ConsoleClient() as client:
         agents = [pentago.get_agent_for_key(client,

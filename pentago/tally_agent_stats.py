@@ -14,23 +14,23 @@ def main():
                         help='Config with which to initialize the second agent.')
     parser.add_argument('--second-pickle',
                         help='Config with which to initialize the second agent. '
-                        'Expects the path to a pickle file. Supersedes --second-config')
+                        'Expects the path to a pickle file. Superseded by --second-config')
     parser.add_argument('--first-agent', default='human')
     parser.add_argument('--first-config', default='{}')
     parser.add_argument('--first-pickle',
                         help='Config with which to initialize the first agent. '
-                        'Expects the path to a pickle file. Supersedes --first-config')
+                        'Expects the path to a pickle file. Superseded by --first-config')
     parser.add_argument('--trials', default=100, type=int)
     args = parser.parse_args()
 
-    if args.first_pickle is None:
-        first_config = json.loads(args.first_config)
-    else:
-        first_config = pickle.load(open(args.first_pickle, mode='rb'))
-    if args.second_pickle is None:
-        second_config = json.loads(args.second_config)
-    else:
-        second_config = pickle.load(open(args.second_pickle, mode='rb'))
+    first_config = json.loads(args.first_config)
+    if args.first_pickle is not None:
+        first_config = {**pickle.load(open(args.first_pickle, mode='rb')),
+                        **first_config}
+    second_config = json.loads(args.second_config)
+    if args.second_pickle is not None:
+        second_config = {**pickle.load(open(args.second_pickle, mode='rb')),
+                         **second_config}
 
     agents = [pentago.get_agent_for_key(None,
                                         args.first_agent,

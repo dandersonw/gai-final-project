@@ -20,6 +20,7 @@ Available agents are:
 * random: Takes random legal moves
 * minimax: Moves based on minimax search
 * human: passes control to a human on the console
+* neural: AlphaZero-alike, MCTS + resnet
 
 Two humans can play each other at one time.
 It is also possible to pit two AI against each other.
@@ -30,12 +31,13 @@ Available options depend on the agent.
 * minimax
   * depth: the depth of search
   * evaluation_function: the evaluation function to use
+* neural: many parameters
+  * 
 
 There is a harness for pitting agents against each other:
 
 ``` shell
-(gai-project) 鳳 python tally_agent_stats.py --black-agent minimax --white-agent minimax --black-config '{"depth": 1}' --white-config '{"depth": 2}'
-100%|██████████████████████████████████████████████████████████████████| 100/100 [03:16<00:00,  1.90s/it]
-White wins: 100, Black wins: 0, Draws: 0
+(gai-project) 鳳 python tally_agent_stats.py --first-agent neural --first-pickle ~/Downloads/trained_pentago_model.pkl --second-agent random --trials 100
+first/second/Draw: 99/0/0: 100%|███████████████████████████████████████| 100/100 [20:43<00:00,  9.53s/it]
+First wins: 100, Second wins: 0, Draws: 0
 ```
-
