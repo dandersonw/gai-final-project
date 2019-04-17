@@ -31,8 +31,8 @@ Available options depend on the agent.
 * minimax
   * depth: the depth of search
   * evaluation_function: the evaluation function to use
-* neural: many parameters
-  * 
+* neural: many parameters, but the one you might change on the command line:
+  * mcts_simulations: how many rollouts of Monte-Carlo tree search to perform
 
 There is a harness for pitting agents against each other:
 

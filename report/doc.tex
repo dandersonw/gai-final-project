@@ -1,0 +1,208 @@
+\documentclass{article}
+
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{cite}
+\usepackage{listings}
+\usepackage{multicol}
+\usepackage{booktabs}
+\usepackage{url}
+
+\setlength{\parindent}{4em}
+\setlength{\parskip}{1em}
+
+\begin{document}
+
+\pagenumbering{gobble}
+%% \maketitle
+%% \newpage
+%% \pagenumbering{arabic}
+
+\begin{center}
+  \textbf{Game AI Project Report}
+
+  \textit{Derick Anderson}
+\end{center}
+
+\subsubsection*{The code}
+
+All of the code can be accessed on GitHub \footnote{https://github.com/dandersonw/gai-final-project}.
+
+\section*{Introduction}
+
+Pentago \footnote{https://en.wikipedia.org/wiki/Pentago} is a two player board
+game that we developed a deep reinforcement learning agent for. The game is
+attractive because it is relatively tractable, but of enough complexity to prove
+interesting.
+
+The game is played similar to Connect 4, but on a 6x6 board where tokens can be
+placed in any blank space. On a player’s turn, they must both place a token in a
+blank space, then rotate one of the corner sub-boards 90 degrees in either
+direction. Testing for a win state only occurs after the board has been rotated
+and the turn has been concluded.
+
+Originally we intended to do TD learning, but we later decided to implement
+the AlphaZero methodology instead.
+
+\subsubsection*{Topics}
+
+Originally the point breakdown was 2 for neural network,
+and 3 for the TD learning.
+I believe that the AlphaZero method should count for the same as TD learning.
+
+\section*{Team}
+
+The team members were Derick Anderson and Steve Krueger.
+We did not initially have a plan for distributing work,
+and Steve pled that he was otherwise occupied,
+so I (Derick) ended up implementing an entire first draft of the project
+before Steve got started.
+I asked him to work on optimizing the training process
+(performance, hyperparameters),
+but he then continued to not spend a lot of time on the project,
+and what code he produced was unusable due to bugs.
+He has some claim that I implemented a lot of the low hanging fruit,
+leaving less easy stuff for him to do,
+but the timeline of the project meant that I felt I had to implement
+or the project would never be done.
+Furthermore,
+the buggy nature of the code he did produce did not make me confident
+that waiting for him to implement would bear fruit.
+
+\section*{Instructions}
+
+\begin{itemize}
+\item You need to create an isolated Python environment.  I recommend Anaconda
+  \footnote{https://www.anaconda.com/}.
+\item With that environment activated, navigate to the
+  \texttt{gai-final-project/pentago} directory, and run \texttt{pip install -e .}
+\item Run one of the commands in the README
+  \footnote{https://github.com/dandersonw/gai-final-project/tree/master/pentago}
+  to play against an agent or tally the results of agents playing.
+\end{itemize}
+
+\section*{Systems}
+
+First I implemented minimax with a hand-written evaluation function.
+No real design was necessary,
+but careful implementation using compilable-to-machine-code Python was necessary
+to get playable speed.
+
+Then I implemented my janky AlphaZero clone.
+That included a few components:
+a residual convolutional neural network,
+a Monte-Carlo tree search implementation,
+and a training procedure.
+The main series of design decisions I had to make
+was how to pare down the process so that I could train it with my resources.
+
+The most obvious decisions were to use a baby size network
+(5 layers and 64 filters),
+and to reduce the rollouts in the training from 800 to 400.
+I took a page out of AlphaGo's book and implemented data augmentation
+based on the rotation-invariance of board states,
+I implemented on-machine distributed self-play and evaluation
+in order to help speed up training.
+
+More difficult decisions had to do with the training process.
+I had to decide how many self-play games to create per round,
+how much to train the network per round,
+how to set the temperature during games,
+and many more questions.
+I read one series of blog posts about implementing AlphaZero on
+Connect 4 \footnote{https://medium.com/oracledevs/lessons-from-implementing-alphazero-7e36e9054191},
+and otherwise tried to gleam insight from the original paper,
+but mostly I tried some values until the process seemed to work.
+
+One way in which I deviated quite severely from the AlphaZero training
+is that I did use minimax with my hand-coded evaluation function
+to start the network off learning.
+That is,
+I put a thousand games worth of minimax play into the memory
+before I started the network learning.
+I think that was necessary because
+I was doing so few (30) games of self-play per learning round
+that the network could overfit hard in the first epochs.
+
+\section*{Failures and Setbacks}
+
+My main problem was that I didn't have the compute resources I needed
+to try many variations of the algorithm,
+and to train a serious model once I found hyperparameters that seemed to work.
+
+One particular failure was my failure to
+make self-play game generation more efficient by splitting out
+many worker threads to run MCTS and an inference service to evaluate boards.
+The distributed processing framework I chose and
+got my first-draft distributed self-play working in wasn't designed for such a task,
+and I couldn't put in another framework/serving application
+without engineering time I didn't have.
+
+\section*{Successes}
+
+The system does, basically, learn how to play the game.
+When I run the training process
+the agent does learn how to beat itself,
+update the best agent checkpoint,
+and learn how to beat itself again.
+It furthermore comfortably beats the minimax baseline
+with order-of-magnitude-comparable thinking time.
+
+Speaking of reproducing that success,
+the training process is conducted in the Jupyter notebook
+in the \texttt{notebooks/} directory.
+
+\section*{Evaluation}
+
+The comments on our proposal said that we didn't have to do formal evaluation,
+but I thought it prudent to do some informal evaluation.
+The neural agent (with more than a few rollouts) always beats a random-move agent.
+I've tabulated some stats for
+the neural agent vs. minimax + hand-coded evaluation function.
+You can reproduce these by following the instructions in the README.
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}[]{r | c c c c}
+    & \multicolumn{4}{c}{\text{MCTS rollouts}}\\
+    \cmidrule{2-5}
+    Minimax Depth & 1 & 100 & 400 & 800\\
+    \midrule
+    1 & 7/93/0 & 34/65/0 & 66/34/0 & 70/30/0 \\
+    2 & 2/98/0 & 50/50/0 & 63/36/1 & 66/33/1 \\
+  \end{tabular}
+  \caption{Win/Lose/Draw rates for neural agent varying minimax depth and MCTS rollout count}
+\end{table}
+
+The above reported results are from only one run each,
+so some noise is to be expected.
+Perplexingly,
+while the trend of increasing rollouts uniformly appears
+to increase the neural agent's win rate,
+increasing the minimax depth doesn't have a uniform effect.
+
+It is my subjective impression that the rollout numbers above are playable
+as an opponent for a human,
+and that the thinking time for depth 2 minimax and 400 rollouts MCTS
+are within an order of magnitude of each other.
+The worst-case branching factor is 288,
+so depth 3 minimax is way too slow to play against.
+
+\section*{Lessons Learned}
+
+I learned something about project and team management from this experience.
+Mostly I've been blessed with helpful partners up to this point,
+so I had assumed that collaboration would just happen,
+but in this case I shouldn't have assumed that.
+
+I already knew about it,
+but I was again reminded of the crushing difference
+between the tens of thousands of TPUs that Google can mobilize
+and the one CPU that I can.
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
